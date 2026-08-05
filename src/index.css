@@ -211,15 +211,17 @@ body {
 }
 
 .grid-9x9 {
-  grid-template-columns: repeat(9, 64px);
-  grid-template-rows: repeat(9, 64px);
+  --cell-size: clamp(32px, 8.5vw, 64px);
+  grid-template-columns: repeat(9, var(--cell-size));
+  grid-template-rows: repeat(9, var(--cell-size));
   width: max-content;
   aspect-ratio: 1;
 }
 
 .grid-6x6 {
-  grid-template-columns: repeat(6, 80px);
-  grid-template-rows: repeat(6, 80px);
+  --cell-size: clamp(45px, 12vw, 80px);
+  grid-template-columns: repeat(6, var(--cell-size));
+  grid-template-rows: repeat(6, var(--cell-size));
   width: max-content;
   aspect-ratio: 1;
 }
@@ -232,7 +234,7 @@ body {
   justify-content: center;
   border-radius: 0; /* Square cells matching official theme */
   font-family: var(--font-sans);
-  font-size: 1.75rem; /* Increased slightly for better legibility */
+  font-size: calc(var(--cell-size) * 0.44); /* Proportional scaling to cell size */
   font-weight: 700;
   cursor: pointer;
   outline: none;
@@ -265,54 +267,8 @@ body {
   align-items: center;
   justify-content: center;
   background: transparent;
-  font-size: 1.75rem; /* Matches the white cells' font size */
+  font-size: calc(var(--cell-size) * 0.44); /* Proportional scaling to cell size */
   font-weight: 800;
-}
-
-/* Responsive Scaling Overrides for Smaller Viewports */
-@media (max-width: 1200px) {
-  .grid-9x9 {
-    grid-template-columns: repeat(9, 56px);
-    grid-template-rows: repeat(9, 56px);
-  }
-  .grid-6x6 {
-    grid-template-columns: repeat(6, 70px);
-    grid-template-rows: repeat(6, 70px);
-  }
-}
-
-@media (max-width: 768px) {
-  .grid-9x9 {
-    grid-template-columns: repeat(9, 44px);
-    grid-template-rows: repeat(9, 44px);
-  }
-  .grid-6x6 {
-    grid-template-columns: repeat(6, 56px);
-    grid-template-rows: repeat(6, 56px);
-  }
-  .grid-cell {
-    font-size: 1.15rem;
-  }
-  .grid-cell.cell-black .black-clue {
-    font-size: 1.15rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .grid-9x9 {
-    grid-template-columns: repeat(9, 34px);
-    grid-template-rows: repeat(9, 34px);
-  }
-  .grid-6x6 {
-    grid-template-columns: repeat(6, 44px);
-    grid-template-rows: repeat(6, 44px);
-  }
-  .grid-cell {
-    font-size: 0.95rem;
-  }
-  .grid-cell.cell-black .black-clue {
-    font-size: 0.95rem;
-  }
 }
 
 /* Crosshair highlights for row/column and compartment */
@@ -381,7 +337,7 @@ body {
 }
 
 .pencil-mark {
-  font-size: 0.65rem;
+  font-size: calc(var(--cell-size) * 0.22); /* Proportional scaling to cell size */
   color: #64748b; /* Medium gray notes */
   display: flex;
   align-items: center;
