@@ -17,17 +17,55 @@ import {
 } from 'lucide-react';
 import Str8tsBoard from './components/Str8tsBoard';
 import ImportModal from './components/ImportModal';
-import { BUILTIN_PUZZLES, parsePuzzleGrid } from './utils/puzzles';
 import { solveStr8ts, validateBoard, getCellCompartments } from './utils/str8tsSolver';
 
+const createEmptyBoard = (size = 9) => {
+  return Array.from({ length: size }, () =>
+    Array.from({ length: size }, () => ({
+      type: 'white',
+      value: null,
+      pencilMarks: [],
+      isGiven: false,
+      isSolved: false,
+      error: false
+    }))
+  );
+};
+
 export default function App() {
-  // Builtin Puzzles
-  const [selectedPuzzleId, setSelectedPuzzleId] = useState(BUILTIN_PUZZLES[0].id);
-  const [importedPuzzleMeta, setImportedPuzzleMeta] = useState(null);
+  // Saved / Imported Puzzles in localStorage
+  const [savedPuzzles, setSavedPuzzles] = useState(() => {
+    try {
+      const saved = localStorage.getItem('str8ts_saved_puzzles');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  // Selected Puzzle and Board Size
+  const [selectedPuzzleId, setSelectedPuzzleId] = useState(() => {
+    try {
+      const saved = localStorage.getItem('str8ts_saved_puzzles');
+      const parsed = saved ? JSON.parse(saved) : [];
+      return parsed.length > 0 ? parsed[0].id : '';
+    } catch (e) {
+      return '';
+    }
+  });
   const [boardSize, setBoardSize] = useState(9); // 9 or 6
   
   // Game States
-  const [board, setBoard] = useState([]);
+  const [board, setBoard] = useState(() => {
+    try {
+      const saved = localStorage.getItem('str8ts_saved_puzzles');
+      const parsed = saved ? JSON.parse(saved) : [];
+      if (parsed.length > 0 && parsed[0].board) {
+        return parsed[0].board.map(row => row.map(c => ({ ...c, pencilMarks: [] })));
+      }
+    } catch (e) {}
+    return createEmptyBoard(9);
+  });
   const [selectedCell, setSelectedCell] = useState(null);
   const [pencilMode, setPencilMode] = useState(false);
   const [gameMode, setGameMode] = useState('play'); // 'play' or 'edit'
@@ -49,39 +87,99 @@ export default function App() {
   const [showRulesModal, setShowRulesModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
 
-  // Load selected puzzle
-  const loadPuzzle = (puzzleId) => {
-    if (puzzleId === 'imported') return;
+  // Sync saved puzzles to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('str8ts_saved_puzzles', JSON.stringify(savedPuzzles));
+    } catch (e) {
+      console.error('Fehler beim Speichern in localStorage', e);
+    }
+  }, [savedPuzzles]);
 
-    const puzzle = BUILTIN_PUZZLES.find(p => p.id === puzzleId);
-    if (!puzzle) return;
-    
-    setBoardSize(puzzle.size);
-    const initialBoard = parsePuzzleGrid(puzzle.grid, puzzle.size);
-    setBoard(initialBoard);
-    setSelectedCell(null);
-    setHistory([]);
-    setFuture([]);
-    setErrors([]);
-    setChecked(false);
-    setGameSolved(false);
-    
-    // Reset timer
-    setTimer(0);
-    setTimerActive(gameMode === 'play');
+  // Load selected puzzle (only from saved imported puzzles)
+  const loadPuzzle = (puzzleId) => {
+    if (!puzzleId) {
+      setBoard(createEmptyBoard(boardSize));
+      setSelectedCell(null);
+      setHistory([]);
+      setFuture([]);
+      setErrors([]);
+      setChecked(false);
+      setGameSolved(false);
+      setTimer(0);
+      setTimerActive(false);
+      return;
+    }
+
+    const savedPuz = savedPuzzles.find(p => p.id === puzzleId);
+    if (savedPuz) {
+      setBoardSize(savedPuz.size);
+      const initialBoard = savedPuz.board.map(row =>
+        row.map(cell => ({
+          ...cell,
+          value: cell.isGiven ? cell.value : null,
+          pencilMarks: [],
+          isSolved: false,
+          error: false
+        }))
+      );
+      setBoard(initialBoard);
+      setSelectedCell(null);
+      setHistory([]);
+      setFuture([]);
+      setErrors([]);
+      setChecked(false);
+      setGameSolved(false);
+      setTimer(0);
+      setTimerActive(gameMode === 'play');
+    }
   };
 
   // Initial load
   useEffect(() => {
-    loadPuzzle(selectedPuzzleId);
+    if (selectedPuzzleId) {
+      loadPuzzle(selectedPuzzleId);
+    }
   }, [selectedPuzzleId]);
 
   // Handle successful import
   const handleImportSuccess = ({ board: importedBoard, size, metadata }) => {
+    const puzzleName = metadata?.name || 'Importiertes Rätsel';
+    const puzzleDiff = metadata?.difficulty || 'Mittel';
+
+    // Check if puzzle already exists by name and size
+    const existingIndex = savedPuzzles.findIndex(p => p.name === puzzleName && p.size === size);
+    const puzzleId = existingIndex >= 0 ? savedPuzzles[existingIndex].id : `imported-${Date.now()}`;
+
+    const newSavedPuzzle = {
+      id: puzzleId,
+      name: puzzleName,
+      difficulty: puzzleDiff,
+      size,
+      board: importedBoard.map(row => row.map(cell => ({
+        type: cell.type,
+        value: cell.value,
+        isGiven: cell.isGiven,
+        pencilMarks: [],
+        isSolved: false,
+        error: false
+      }))),
+      savedAt: new Date().toISOString()
+    };
+
+    setSavedPuzzles(prev => {
+      const idx = prev.findIndex(p => p.name === puzzleName && p.size === size);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = newSavedPuzzle;
+        return copy;
+      }
+      return [newSavedPuzzle, ...prev];
+    });
+
     setBoardSize(size);
     setBoard(importedBoard);
-    setImportedPuzzleMeta(metadata);
-    setSelectedPuzzleId('imported');
+    setSelectedPuzzleId(puzzleId);
     setSelectedCell(null);
     setHistory([]);
     setFuture([]);
@@ -504,9 +602,29 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedCell, board, pencilMode, gameMode, boardSize, showRulesModal, showImportModal, gameSolved, history, future]);
 
-  const currentPuzzle = selectedPuzzleId === 'imported' && importedPuzzleMeta
-    ? { name: importedPuzzleMeta.name, difficulty: importedPuzzleMeta.difficulty, size: boardSize }
-    : BUILTIN_PUZZLES.find(p => p.id === selectedPuzzleId);
+  // Delete current selected puzzle from saved library
+  const handleDeleteCurrentPuzzle = () => {
+    if (!selectedPuzzleId) return;
+    const puzzleToDelete = savedPuzzles.find(p => p.id === selectedPuzzleId);
+    if (!puzzleToDelete) return;
+    
+    if (window.confirm(`Möchtest du "${puzzleToDelete.name}" wirklich aus den gespeicherten Rätseln löschen?`)) {
+      const remaining = savedPuzzles.filter(p => p.id !== selectedPuzzleId);
+      setSavedPuzzles(remaining);
+      if (remaining.length > 0) {
+        setSelectedPuzzleId(remaining[0].id);
+        loadPuzzle(remaining[0].id);
+      } else {
+        setSelectedPuzzleId('');
+        setBoard(createEmptyBoard(boardSize));
+        setSelectedCell(null);
+        setTimer(0);
+        setTimerActive(false);
+      }
+    }
+  };
+
+  const currentPuzzle = savedPuzzles.find(p => p.id === selectedPuzzleId) || null;
 
   return (
     <div className="app-container">
@@ -576,10 +694,12 @@ export default function App() {
           {gameMode === 'play' && (
             <div className="board-status-bar">
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontWeight: 700 }}>{currentPuzzle?.name}</span>
-                <span className={`difficulty-badge ${currentPuzzle?.difficulty ? currentPuzzle.difficulty.toLowerCase() : 'mittel'}`}>
-                  {currentPuzzle?.difficulty}
-                </span>
+                <span style={{ fontWeight: 700 }}>{currentPuzzle?.name || 'Kein Rätsel geladen'}</span>
+                {currentPuzzle?.difficulty && (
+                  <span className={`difficulty-badge ${currentPuzzle.difficulty.toLowerCase()}`}>
+                    {currentPuzzle.difficulty}
+                  </span>
+                )}
               </div>
               <div className="timer">
                 <Clock size={16} />
@@ -628,7 +748,7 @@ export default function App() {
         {/* Right Side: Control Panels */}
         <div className="sidebar-panel">
           
-          {/* Built-in Puzzle Selector (Only in Play mode) */}
+          {/* Saved Puzzles Selector (Only in Play mode) */}
           {gameMode === 'play' && (
             <div className="glass-panel">
               <h2 className="panel-title">
@@ -636,23 +756,39 @@ export default function App() {
                 Rätsel wählen
               </h2>
               <div className="control-group">
-                <label className="label-text">Verfügbare Rätsel</label>
-                <select 
-                  className="select-control"
-                  value={selectedPuzzleId}
-                  onChange={(e) => setSelectedPuzzleId(e.target.value)}
-                >
-                  {selectedPuzzleId === 'imported' && importedPuzzleMeta && (
-                    <option value="imported">
-                      📌 {importedPuzzleMeta.name} ({boardSize}x{boardSize})
-                    </option>
+                <label className="label-text">Verfügbare Rätsel ({savedPuzzles.length})</label>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <select 
+                    className="select-control"
+                    style={{ flex: 1 }}
+                    value={selectedPuzzleId}
+                    onChange={(e) => {
+                      const newId = e.target.value;
+                      setSelectedPuzzleId(newId);
+                      loadPuzzle(newId);
+                    }}
+                  >
+                    {savedPuzzles.length === 0 ? (
+                      <option value="" disabled>Keine Rätsel geladen (Importieren nutzen)</option>
+                    ) : (
+                      savedPuzzles.map(p => (
+                        <option key={p.id} value={p.id}>
+                          📥 {p.name} ({p.size}x{p.size}) - {p.difficulty}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                  {selectedPuzzleId && savedPuzzles.length > 0 && (
+                    <button 
+                      type="button" 
+                      className="btn btn-secondary btn-icon" 
+                      onClick={handleDeleteCurrentPuzzle}
+                      title="Ausgewähltes Rätsel löschen"
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   )}
-                  {BUILTIN_PUZZLES.map(p => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} ({p.size}x{p.size}) - {p.difficulty}
-                    </option>
-                  ))}
-                </select>
+                </div>
               </div>
             </div>
           )}
@@ -883,18 +1019,21 @@ export default function App() {
             )}
 
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.5rem' }}>
-              <button 
-                className="btn btn-secondary"
-                onClick={() => {
-                  setGameSolved(false);
-                  // load next puzzle or restart
-                  const idx = BUILTIN_PUZZLES.findIndex(p => p.id === selectedPuzzleId);
-                  const nextIdx = (idx + 1) % BUILTIN_PUZZLES.length;
-                  setSelectedPuzzleId(BUILTIN_PUZZLES[nextIdx].id);
-                }}
-              >
-                Nächstes Rätsel
-              </button>
+              {savedPuzzles.length > 1 && (
+                <button 
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setGameSolved(false);
+                    const idx = savedPuzzles.findIndex(p => p.id === selectedPuzzleId);
+                    const nextIdx = (idx + 1) % savedPuzzles.length;
+                    const nextId = savedPuzzles[nextIdx].id;
+                    setSelectedPuzzleId(nextId);
+                    loadPuzzle(nextId);
+                  }}
+                >
+                  Nächstes Rätsel
+                </button>
+              )}
               <button 
                 className="btn btn-primary"
                 onClick={() => {
