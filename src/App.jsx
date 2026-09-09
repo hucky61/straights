@@ -12,15 +12,18 @@ import {
   Sparkles,
   Clock,
   Grid,
-  Info
+  Info,
+  Download
 } from 'lucide-react';
 import Str8tsBoard from './components/Str8tsBoard';
+import ImportModal from './components/ImportModal';
 import { BUILTIN_PUZZLES, parsePuzzleGrid } from './utils/puzzles';
 import { solveStr8ts, validateBoard, getCellCompartments } from './utils/str8tsSolver';
 
 export default function App() {
   // Builtin Puzzles
   const [selectedPuzzleId, setSelectedPuzzleId] = useState(BUILTIN_PUZZLES[0].id);
+  const [importedPuzzleMeta, setImportedPuzzleMeta] = useState(null);
   const [boardSize, setBoardSize] = useState(9); // 9 or 6
   
   // Game States
@@ -42,11 +45,14 @@ export default function App() {
   const [checked, setChecked] = useState(false);
   const [gameSolved, setGameSolved] = useState(false);
   
-  // Modal State
+  // Modal States
   const [showRulesModal, setShowRulesModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   // Load selected puzzle
   const loadPuzzle = (puzzleId) => {
+    if (puzzleId === 'imported') return;
+
     const puzzle = BUILTIN_PUZZLES.find(p => p.id === puzzleId);
     if (!puzzle) return;
     
@@ -69,6 +75,23 @@ export default function App() {
   useEffect(() => {
     loadPuzzle(selectedPuzzleId);
   }, [selectedPuzzleId]);
+
+  // Handle successful import
+  const handleImportSuccess = ({ board: importedBoard, size, metadata }) => {
+    setBoardSize(size);
+    setBoard(importedBoard);
+    setImportedPuzzleMeta(metadata);
+    setSelectedPuzzleId('imported');
+    setSelectedCell(null);
+    setHistory([]);
+    setFuture([]);
+    setErrors([]);
+    setChecked(false);
+    setGameSolved(false);
+    setGameMode('play');
+    setTimer(0);
+    setTimerActive(true);
+  };
 
   // Handle Game Mode change (Play vs Edit)
   const handleGameModeChange = (mode) => {
@@ -426,7 +449,7 @@ export default function App() {
   // Keyboard navigation and input
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (showRulesModal || gameSolved) return;
+      if (showRulesModal || showImportModal || gameSolved) return;
       
       // Arrow navigation
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
@@ -479,9 +502,11 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedCell, board, pencilMode, gameMode, boardSize, showRulesModal, gameSolved, history, future]);
+  }, [selectedCell, board, pencilMode, gameMode, boardSize, showRulesModal, showImportModal, gameSolved, history, future]);
 
-  const currentPuzzle = BUILTIN_PUZZLES.find(p => p.id === selectedPuzzleId);
+  const currentPuzzle = selectedPuzzleId === 'imported' && importedPuzzleMeta
+    ? { name: importedPuzzleMeta.name, difficulty: importedPuzzleMeta.difficulty, size: boardSize }
+    : BUILTIN_PUZZLES.find(p => p.id === selectedPuzzleId);
 
   return (
     <div className="app-container">
@@ -509,6 +534,14 @@ export default function App() {
             onClick={() => handleGameModeChange('edit')}
           >
             Custom Rätsel (Edit)
+          </button>
+          <button 
+            className="btn btn-secondary"
+            onClick={() => setShowImportModal(true)}
+            title="Str8ts Rätsel per URL oder Code importieren"
+          >
+            <Download size={18} color="var(--accent-cyan)" />
+            Importieren
           </button>
           <button 
             className="btn btn-secondary btn-icon" 
@@ -544,7 +577,7 @@ export default function App() {
             <div className="board-status-bar">
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span style={{ fontWeight: 700 }}>{currentPuzzle?.name}</span>
-                <span className={`difficulty-badge ${currentPuzzle?.difficulty.toLowerCase()}`}>
+                <span className={`difficulty-badge ${currentPuzzle?.difficulty ? currentPuzzle.difficulty.toLowerCase() : 'mittel'}`}>
                   {currentPuzzle?.difficulty}
                 </span>
               </div>
@@ -609,6 +642,11 @@ export default function App() {
                   value={selectedPuzzleId}
                   onChange={(e) => setSelectedPuzzleId(e.target.value)}
                 >
+                  {selectedPuzzleId === 'imported' && importedPuzzleMeta && (
+                    <option value="imported">
+                      📌 {importedPuzzleMeta.name} ({boardSize}x{boardSize})
+                    </option>
+                  )}
                   {BUILTIN_PUZZLES.map(p => (
                     <option key={p.id} value={p.id}>
                       {p.name} ({p.size}x{p.size}) - {p.difficulty}
@@ -754,6 +792,13 @@ export default function App() {
         </div>
 
       </div>
+
+      {/* Import Modal */}
+      <ImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onImportSuccess={handleImportSuccess}
+      />
 
       {/* Rules Modal Overlay */}
       {showRulesModal && (
