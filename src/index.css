@@ -42,6 +42,12 @@
   padding: 0;
 }
 
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-primary);
@@ -234,7 +240,7 @@ body {
   justify-content: center;
   border-radius: 0; /* Square cells matching official theme */
   font-family: var(--font-sans);
-  font-size: calc(var(--cell-size) * 0.44); /* Proportional scaling to cell size */
+  font-size: calc(var(--cell-size) * 0.65); /* Proportional scaling to cell size (fills cell prominently) */
   font-weight: 700;
   cursor: pointer;
   outline: none;
@@ -267,7 +273,7 @@ body {
   align-items: center;
   justify-content: center;
   background: transparent;
-  font-size: calc(var(--cell-size) * 0.44); /* Proportional scaling to cell size */
+  font-size: calc(var(--cell-size) * 0.65); /* Proportional scaling to cell size */
   font-weight: 800;
 }
 
@@ -337,7 +343,7 @@ body {
 }
 
 .pencil-mark {
-  font-size: calc(var(--cell-size) * 0.22); /* Proportional scaling to cell size */
+  font-size: calc(var(--cell-size) * 0.30); /* Proportional scaling to cell size */
   color: #64748b; /* Medium gray notes */
   display: flex;
   align-items: center;
@@ -1005,18 +1011,46 @@ body {
   }
 
   .board-section {
-    gap: 1rem;
+    gap: 1.25rem;
   }
 
   .board-status-bar {
     width: 100%;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .timer {
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+
+  .difficulty-badge {
+    font-size: 0.85rem;
+  }
+
+  .label-text {
     font-size: 0.88rem;
+  }
+
+  .btn {
+    font-size: 1rem;
+  }
+
+  .select-control {
+    font-size: 1rem;
+  }
+
+  .keyboard-hints {
+    font-size: 0.9rem;
+    line-height: 1.55;
   }
 
   .edit-mode-banner {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
+    font-size: 0.95rem;
   }
 }
 
@@ -1031,13 +1065,13 @@ body {
   }
 
   .logo-text {
-    font-size: 1.45rem;
+    font-size: 1.5rem;
   }
 
   .logo-icon {
-    width: 36px;
-    height: 36px;
-    font-size: 1.35rem;
+    width: 38px;
+    height: 38px;
+    font-size: 1.4rem;
   }
 
   .glass-panel {
@@ -1049,28 +1083,62 @@ body {
     padding: 4px;
   }
 
-  /* Dynamically adapt grid cell size so 9x9 board fits without horizontal overflow */
+  /* Optimal board cell sizing for mobile screens */
   .grid-9x9 {
-    --cell-size: clamp(28px, 9.4vw, 42px);
+    --cell-size: clamp(32px, 9.6vw, 44px);
   }
 
   .grid-6x6 {
-    --cell-size: clamp(38px, 14vw, 56px);
+    --cell-size: clamp(42px, 14vw, 60px);
+  }
+
+  .grid-cell {
+    font-size: calc(var(--cell-size) * 0.68); /* Extra bold and legible on small screens */
+  }
+
+  .grid-cell.cell-black .black-clue {
+    font-size: calc(var(--cell-size) * 0.68);
+  }
+
+  .pencil-mark {
+    font-size: calc(var(--cell-size) * 0.32);
+    font-weight: 700;
   }
 
   .board-status-bar {
     flex-wrap: wrap;
     gap: 0.5rem;
+    font-size: 0.95rem;
+  }
+
+  .numpad-grid {
+    max-width: 270px;
+    gap: 0.5rem;
   }
 
   .numpad-btn {
-    font-size: 1.35rem;
+    font-size: 1.65rem;
+    font-weight: 800;
+  }
+
+  .label-text {
+    font-size: 0.86rem;
+  }
+
+  .keyboard-hints {
+    font-size: 0.88rem;
+    line-height: 1.5;
   }
 
   .modal-content {
     padding: 1.25rem;
     width: 95%;
     max-height: 90vh;
+    font-size: 1rem;
+  }
+
+  .modal-body {
+    font-size: 0.95rem;
   }
 }
 
