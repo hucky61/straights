@@ -987,13 +987,17 @@ export default function App() {
               ))}
               {/* Fill remaining slots to maintain nice 3x3 layout if size is 9, or add space */}
               {boardSize === 9 ? (
-                <button className="numpad-btn numpad-erase" onClick={handleDelete} disabled={!selectedCell}>
-                  <Trash2 size={20} />
-                </button>
+                <>
+                  <div />
+                  <button className="numpad-btn numpad-erase" onClick={handleDelete} disabled={!selectedCell} title="Feld leeren">
+                    <Trash2 size={20} />
+                  </button>
+                  <div />
+                </>
               ) : (
                 <>
                   <div />
-                  <button className="numpad-btn numpad-erase" onClick={handleDelete} disabled={!selectedCell}>
+                  <button className="numpad-btn numpad-erase" onClick={handleDelete} disabled={!selectedCell} title="Feld leeren">
                     <Trash2 size={20} />
                   </button>
                 </>
