@@ -100,7 +100,7 @@ export default function ImportModal({ isOpen, onClose, onImportSuccess }) {
           <div className="control-group" style={{ marginBottom: '1.25rem' }}>
             <label className="label-text" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Calendar size={14} color="var(--accent-cyan)" />
-              Druckversion der letzten 28 Tage wählen:
+              Verfügbare Rätsel:
             </label>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '0.35rem' }}>
               <select
