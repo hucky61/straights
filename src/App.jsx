@@ -13,7 +13,9 @@ import {
   Clock,
   Grid,
   Info,
-  Download
+  Download,
+  Menu,
+  X
 } from 'lucide-react';
 import Str8tsBoard from './components/Str8tsBoard';
 import ImportModal from './components/ImportModal';
@@ -83,9 +85,10 @@ export default function App() {
   const [checked, setChecked] = useState(false);
   const [gameSolved, setGameSolved] = useState(false);
   
-  // Modal States
+  // Modal & Navigation States
   const [showRulesModal, setShowRulesModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Sync saved puzzles to localStorage
   useEffect(() => {
@@ -640,7 +643,8 @@ export default function App() {
           </div>
         </div>
 
-        <div className="btn-row">
+        {/* Desktop Navigation */}
+        <div className="btn-row desktop-nav">
           <button 
             className={`btn ${gameMode === 'play' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => handleGameModeChange('play')}
@@ -669,7 +673,92 @@ export default function App() {
             <BookOpen size={20} />
           </button>
         </div>
+
+        {/* Mobile Hamburger Button */}
+        <button 
+          className="hamburger-btn"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label={mobileMenuOpen ? "Menü schließen" : "Menü öffnen"}
+          aria-expanded={mobileMenuOpen}
+        >
+          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
       </header>
+
+      {/* Mobile Navigation Drawer */}
+      {mobileMenuOpen && (
+        <div className="mobile-menu-overlay" onClick={() => setMobileMenuOpen(false)}>
+          <div 
+            className="mobile-menu-drawer" 
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mobile-menu-header">
+              <div className="logo-section">
+                <div className="logo-icon small">S</div>
+                <div>
+                  <div className="mobile-menu-title">Str8ts Menü</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Navigation & Optionen</div>
+                </div>
+              </div>
+              <button 
+                className="btn-icon mobile-menu-close"
+                onClick={() => setMobileMenuOpen(false)}
+                aria-label="Menü schließen"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="mobile-menu-items">
+              <div className="mobile-menu-section-label">Spielmodus</div>
+              <button 
+                className={`btn mobile-menu-btn ${gameMode === 'play' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => {
+                  handleGameModeChange('play');
+                  setMobileMenuOpen(false);
+                }}
+              >
+                <Play size={18} />
+                <span>Spielen</span>
+              </button>
+
+              <button 
+                className={`btn mobile-menu-btn ${gameMode === 'edit' ? 'btn-accent' : 'btn-secondary'}`}
+                onClick={() => {
+                  handleGameModeChange('edit');
+                  setMobileMenuOpen(false);
+                }}
+              >
+                <Sparkles size={18} />
+                <span>Custom Rätsel (Edit)</span>
+              </button>
+
+              <div className="mobile-menu-section-label" style={{ marginTop: '0.75rem' }}>Aktionen & Hilfe</div>
+              <button 
+                className="btn btn-secondary mobile-menu-btn"
+                onClick={() => {
+                  setShowImportModal(true);
+                  setMobileMenuOpen(false);
+                }}
+              >
+                <Download size={18} color="var(--accent-cyan)" />
+                <span>Rätsel importieren</span>
+              </button>
+
+              <button 
+                className="btn btn-secondary mobile-menu-btn"
+                onClick={() => {
+                  setShowRulesModal(true);
+                  setMobileMenuOpen(false);
+                }}
+              >
+                <BookOpen size={18} />
+                <span>Spielregeln anzeigen</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit Mode Banner */}
       {gameMode === 'edit' && (
