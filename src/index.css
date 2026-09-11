@@ -151,6 +151,14 @@ body {
   .game-workspace {
     grid-template-columns: 1fr;
   }
+
+  .grid-9x9 {
+    --cell-size: clamp(36px, calc((100vw - 48px) / 9), 92px);
+  }
+
+  .grid-6x6 {
+    --cell-size: clamp(45px, calc((100vw - 48px) / 6), 110px);
+  }
 }
 
 /* Glass Card styling */
@@ -218,7 +226,7 @@ body {
 }
 
 .grid-9x9 {
-  --cell-size: clamp(34px, 5.5vw, 68px);
+  --cell-size: clamp(36px, 6vw, 96px);
   grid-template-columns: repeat(9, var(--cell-size));
   grid-template-rows: repeat(9, var(--cell-size));
   width: max-content;
@@ -226,7 +234,7 @@ body {
 }
 
 .grid-6x6 {
-  --cell-size: clamp(45px, 8vw, 84px);
+  --cell-size: clamp(45px, 9vw, 120px);
   grid-template-columns: repeat(6, var(--cell-size));
   grid-template-rows: repeat(6, var(--cell-size));
   width: max-content;
@@ -1024,13 +1032,13 @@ body {
     padding: 3px;
   }
 
-  /* Minimize horizontal empty space on tablet and mobile viewports */
+  /* Remove height restriction: allow board to scale freely to available width */
   .grid-9x9 {
-    --cell-size: clamp(34px, calc((100vw - 32px) / 9), 68px);
+    --cell-size: calc((100vw - 28px) / 9);
   }
 
   .grid-6x6 {
-    --cell-size: clamp(45px, calc((100vw - 30px) / 6), 84px);
+    --cell-size: calc((100vw - 26px) / 6);
   }
 
   .board-status-bar {
