@@ -8,27 +8,28 @@
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --text-muted: #64748b;
-  
-  --accent-cyan: #0284c7; /* Sky blue accent */
+
+  --accent-cyan: #0284c7;
+  /* Sky blue accent */
   --accent-cyan-glow: rgba(2, 132, 199, 0.15);
   --accent-blue: #2563eb;
   --accent-blue-glow: rgba(37, 99, 235, 0.1);
   --accent-purple: #7c3aed;
   --accent-purple-glow: rgba(124, 58, 237, 0.15);
-  
+
   --color-success: #059669;
   --color-success-glow: rgba(5, 150, 105, 0.15);
   --color-error: #dc2626;
   --color-error-glow: rgba(220, 38, 38, 0.15);
   --color-warning: #d97706;
-  
+
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-display: 'Outfit', sans-serif;
-  
+
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 20px;
-  
+
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
   --shadow-glow: 0 0 0 3px rgba(2, 132, 199, 0.25);
@@ -51,7 +52,7 @@ html {
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-primary);
-  background-image: 
+  background-image:
     radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.03) 0%, transparent 40%),
     radial-gradient(circle at 90% 80%, rgba(124, 58, 237, 0.03) 0%, transparent 40%);
   background-attachment: fixed;
@@ -65,13 +66,16 @@ body {
 ::-webkit-scrollbar {
   width: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--bg-primary);
 }
+
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: var(--radius-sm);
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
@@ -135,9 +139,20 @@ body {
   border: 1px solid var(--glass-border);
 }
 
-.difficulty-badge.einfach { color: var(--color-success); border-color: rgba(5, 150, 105, 0.2); }
-.difficulty-badge.mittel { color: var(--color-warning); border-color: rgba(217, 119, 6, 0.2); }
-.difficulty-badge.schwer { color: var(--color-error); border-color: rgba(220, 38, 38, 0.2); }
+.difficulty-badge.einfach {
+  color: var(--color-success);
+  border-color: rgba(5, 150, 105, 0.2);
+}
+
+.difficulty-badge.mittel {
+  color: var(--color-warning);
+  border-color: rgba(217, 119, 6, 0.2);
+}
+
+.difficulty-badge.schwer {
+  color: var(--color-error);
+  border-color: rgba(220, 38, 38, 0.2);
+}
 
 /* Main Game Workspace */
 .game-workspace {
@@ -211,15 +226,18 @@ body {
   padding: 6px;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
-  border: 3.5px solid #0f172a; /* Thick outer border matching str8ts.de */
+  border: 3.5px solid #0f172a;
+  /* Thick outer border matching str8ts.de */
   max-width: 100%;
 }
 
 /* The actual board layout */
 .str8ts-grid {
   display: grid;
-  gap: 1.5px; /* Thin inner grid line separator */
-  background-color: #cbd5e1; /* The grid lines color (light gray) */
+  gap: 1.5px;
+  /* Thin inner grid line separator */
+  background-color: #cbd5e1;
+  /* The grid lines color (light gray) */
   padding: 0;
   border-radius: 0;
   user-select: none;
@@ -247,9 +265,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0; /* Square cells matching official theme */
+  border-radius: 0;
+  /* Square cells matching official theme */
   font-family: var(--font-sans);
-  font-size: calc(var(--cell-size) * 0.65); /* Proportional scaling to cell size (fills cell prominently) */
+  font-size: calc(var(--cell-size) * 0.65);
+  /* Proportional scaling to cell size (fills cell prominently) */
   font-weight: 700;
   cursor: pointer;
   outline: none;
@@ -260,7 +280,8 @@ body {
 /* Cell White (Interactive Player Cell) */
 .grid-cell.cell-white {
   background-color: #ffffff;
-  color: var(--accent-blue); /* Player entered numbers in dark blue */
+  color: var(--accent-blue);
+  /* Player entered numbers in dark blue */
   border: none;
 }
 
@@ -270,7 +291,8 @@ body {
 
 /* Cell Black (Blocker Cell) */
 .grid-cell.cell-black {
-  background-color: #0f172a; /* Deep black matching official theme */
+  background-color: #0f172a;
+  /* Deep black matching official theme */
   color: #ffffff;
   border: none;
   cursor: default;
@@ -282,17 +304,20 @@ body {
   align-items: center;
   justify-content: center;
   background: transparent;
-  font-size: calc(var(--cell-size) * 0.65); /* Proportional scaling to cell size */
+  font-size: calc(var(--cell-size) * 0.65);
+  /* Proportional scaling to cell size */
   font-weight: 800;
 }
 
 /* Crosshair highlights for row/column and compartment */
 .grid-cell.highlight-rowcol {
-  background-color: #f0f9ff !important; /* Very soft sky blue tint */
+  background-color: #f0f9ff !important;
+  /* Very soft sky blue tint */
 }
 
 .grid-cell.highlight-compartment {
-  background-color: #e0f2fe !important; /* Slightly stronger sky blue tint */
+  background-color: #e0f2fe !important;
+  /* Slightly stronger sky blue tint */
 }
 
 /* Active Selected Cell - Solid Sky Blue */
@@ -319,6 +344,7 @@ body {
   0% {
     background-color: var(--color-success-glow);
   }
+
   100% {
     background-color: transparent;
   }
@@ -333,9 +359,21 @@ body {
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-3px); }
-  40%, 80% { transform: translateX(3px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20%,
+  60% {
+    transform: translateX(-3px);
+  }
+
+  40%,
+  80% {
+    transform: translateX(3px);
+  }
 }
 
 /* Pencil Marks / Notes (3x3 grid inside cell) */
@@ -352,8 +390,10 @@ body {
 }
 
 .pencil-mark {
-  font-size: calc(var(--cell-size) * 0.30); /* Proportional scaling to cell size */
-  color: #64748b; /* Medium gray notes */
+  font-size: calc(var(--cell-size) * 0.30);
+  /* Proportional scaling to cell size */
+  color: #64748b;
+  /* Medium gray notes */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -651,13 +691,25 @@ body {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes scaleIn {
-  from { transform: scale(0.95) translateY(10px); opacity: 0; }
-  to { transform: scale(1) translateY(0); opacity: 1; }
+  from {
+    transform: scale(0.95) translateY(10px);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
 }
 
 .modal-close-btn {
@@ -851,8 +903,13 @@ body {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ==========================================================================
@@ -919,6 +976,7 @@ body {
   from {
     transform: translateX(100%);
   }
+
   to {
     transform: translateX(0);
   }
@@ -1034,7 +1092,8 @@ body {
 
   /* Remove height restriction: allow board to scale freely to available width */
   .grid-9x9 {
-    --cell-size: calc((100vw - 28px) / 9);
+    /* --cell-size: calc((100vw - 28px) / 9); */
+    --cell-size: 44px;
   }
 
   .grid-6x6 {
@@ -1119,15 +1178,18 @@ body {
 
   /* Make the space to the left and right of the board as narrow as possible */
   .grid-9x9 {
-    --cell-size: calc((100vw - 26px) / 9);
+    /* --cell-size: calc((100vw - 26px) / 9); */
+    --cell-size: 44px;
   }
 
   .grid-6x6 {
-    --cell-size: calc((100vw - 22px) / 6);
+    /* --cell-size: calc((100vw - 22px) / 6); */
+    --cell-size: 40px;
   }
 
   .grid-cell {
-    font-size: calc(var(--cell-size) * 0.68); /* Extra bold and legible on small screens */
+    font-size: calc(var(--cell-size) * 0.68);
+    /* Extra bold and legible on small screens */
   }
 
   .grid-cell.cell-black .black-clue {
@@ -1175,4 +1237,3 @@ body {
     font-size: 0.95rem;
   }
 }
-
