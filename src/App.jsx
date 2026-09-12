@@ -56,7 +56,7 @@ export default function App() {
     }
   });
   const [boardSize, setBoardSize] = useState(9); // 9 or 6
-  
+
   // Game States
   const [board, setBoard] = useState(() => {
     try {
@@ -65,26 +65,26 @@ export default function App() {
       if (parsed.length > 0 && parsed[0].board) {
         return parsed[0].board.map(row => row.map(c => ({ ...c, pencilMarks: [] })));
       }
-    } catch (e) {}
+    } catch (e) { }
     return createEmptyBoard(9);
   });
   const [selectedCell, setSelectedCell] = useState(null);
   const [pencilMode, setPencilMode] = useState(false);
   const [gameMode, setGameMode] = useState('play'); // 'play' or 'edit'
-  
+
   // Undo/Redo History
   const [history, setHistory] = useState([]);
   const [future, setFuture] = useState([]);
-  
+
   // Timer States
   const [timer, setTimer] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
-  
+
   // Checking States
   const [errors, setErrors] = useState([]);
   const [checked, setChecked] = useState(false);
   const [gameSolved, setGameSolved] = useState(false);
-  
+
   // Modal & Navigation States
   const [showRulesModal, setShowRulesModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
@@ -200,11 +200,11 @@ export default function App() {
     setSelectedCell(null);
     setErrors([]);
     setChecked(false);
-    
+
     if (mode === 'edit') {
       setTimerActive(false);
       // Turn all white solved cells into normal empty cells for editing, or keep board
-      const newBoard = board.map(row => 
+      const newBoard = board.map(row =>
         row.map(cell => ({
           ...cell,
           isSolved: false,
@@ -217,7 +217,7 @@ export default function App() {
       // Re-initialize timer or set active
       setTimerActive(true);
       // Ensure all clues have isGiven: true
-      const newBoard = board.map(row => 
+      const newBoard = board.map(row =>
         row.map(cell => ({
           ...cell,
           isGiven: cell.value !== null && cell.type === 'white' ? true : cell.isGiven,
@@ -286,7 +286,7 @@ export default function App() {
     // Play Mode restrictions
     if (gameMode === 'play') {
       if (cell.type === 'black' || cell.isGiven) return;
-      
+
       const newBoard = board.map((row, ri) =>
         row.map((colCell, ci) => {
           if (ri === r && ci === c) {
@@ -307,7 +307,7 @@ export default function App() {
         })
       );
       pushToHistory(newBoard);
-    } 
+    }
     // Edit Mode controls (setting custom clues/values)
     else if (gameMode === 'edit') {
       const newBoard = board.map((row, ri) =>
@@ -328,7 +328,7 @@ export default function App() {
       );
       pushToHistory(newBoard);
     }
-    
+
     // Clear errors when entering numbers
     setErrors([]);
     setChecked(false);
@@ -365,7 +365,7 @@ export default function App() {
   const toggleCellType = (type) => {
     if (gameMode !== 'edit' || !selectedCell) return;
     const { r, c } = selectedCell;
-    
+
     const newBoard = board.map((row, ri) =>
       row.map((colCell, ci) => {
         if (ri === r && ci === c) {
@@ -428,7 +428,7 @@ export default function App() {
       pushToHistory(solvedBoard);
       setErrors([]);
       setChecked(true);
-      
+
       // If we solve it in Play mode, check if solved
       if (gameMode === 'play') {
         // Find if anything was actually filled
@@ -454,7 +454,7 @@ export default function App() {
   // Get Hint (Fills one cell with the correct solver value)
   const handleHint = () => {
     if (gameSolved) return;
-    
+
     // Prepare board
     const preparedBoard = board.map(row =>
       row.map(cell => ({
@@ -499,7 +499,7 @@ export default function App() {
           return colCell;
         })
       );
-      
+
       pushToHistory(newBoard);
       setSelectedCell({ r: randomHint.r, c: randomHint.c });
       setErrors([]);
@@ -551,7 +551,7 @@ export default function App() {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (showRulesModal || showImportModal || gameSolved) return;
-      
+
       // Arrow navigation
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         e.preventDefault();
@@ -559,7 +559,7 @@ export default function App() {
           setSelectedCell({ r: 0, c: 0 });
           return;
         }
-        
+
         let { r, c } = selectedCell;
         if (e.key === 'ArrowUp') r = Math.max(0, r - 1);
         if (e.key === 'ArrowDown') r = Math.min(boardSize - 1, r + 1);
@@ -610,7 +610,7 @@ export default function App() {
     if (!selectedPuzzleId) return;
     const puzzleToDelete = savedPuzzles.find(p => p.id === selectedPuzzleId);
     if (!puzzleToDelete) return;
-    
+
     if (window.confirm(`Möchtest du "${puzzleToDelete.name}" wirklich aus den gespeicherten Rätseln löschen?`)) {
       const remaining = savedPuzzles.filter(p => p.id !== selectedPuzzleId);
       setSavedPuzzles(remaining);
@@ -645,19 +645,19 @@ export default function App() {
 
         {/* Desktop Navigation */}
         <div className="btn-row desktop-nav">
-          <button 
+          <button
             className={`btn ${gameMode === 'play' ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => handleGameModeChange('play')}
           >
             Spielen
           </button>
-          <button 
+          <button
             className={`btn ${gameMode === 'edit' ? 'btn-accent' : 'btn-secondary'}`}
             onClick={() => handleGameModeChange('edit')}
           >
-            Custom Rätsel (Edit)
+            Edit
           </button>
-          <button 
+          <button
             className="btn btn-secondary"
             onClick={() => setShowImportModal(true)}
             title="Str8ts Rätsel per URL oder Code importieren"
@@ -665,8 +665,8 @@ export default function App() {
             <Download size={18} color="var(--accent-cyan)" />
             Importieren
           </button>
-          <button 
-            className="btn btn-secondary btn-icon" 
+          <button
+            className="btn btn-secondary btn-icon"
             onClick={() => setShowRulesModal(true)}
             title="Spielregeln anzeigen"
           >
@@ -675,7 +675,7 @@ export default function App() {
         </div>
 
         {/* Mobile Hamburger Button */}
-        <button 
+        <button
           className="hamburger-btn"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label={mobileMenuOpen ? "Menü schließen" : "Menü öffnen"}
@@ -688,8 +688,8 @@ export default function App() {
       {/* Mobile Navigation Drawer */}
       {mobileMenuOpen && (
         <div className="mobile-menu-overlay" onClick={() => setMobileMenuOpen(false)}>
-          <div 
-            className="mobile-menu-drawer" 
+          <div
+            className="mobile-menu-drawer"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mobile-menu-header">
@@ -700,7 +700,7 @@ export default function App() {
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Navigation & Optionen</div>
                 </div>
               </div>
-              <button 
+              <button
                 className="btn-icon mobile-menu-close"
                 onClick={() => setMobileMenuOpen(false)}
                 aria-label="Menü schließen"
@@ -711,7 +711,7 @@ export default function App() {
 
             <div className="mobile-menu-items">
               <div className="mobile-menu-section-label">Spielmodus</div>
-              <button 
+              <button
                 className={`btn mobile-menu-btn ${gameMode === 'play' ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => {
                   handleGameModeChange('play');
@@ -722,7 +722,7 @@ export default function App() {
                 <span>Spielen</span>
               </button>
 
-              <button 
+              <button
                 className={`btn mobile-menu-btn ${gameMode === 'edit' ? 'btn-accent' : 'btn-secondary'}`}
                 onClick={() => {
                   handleGameModeChange('edit');
@@ -730,11 +730,11 @@ export default function App() {
                 }}
               >
                 <Sparkles size={18} />
-                <span>Custom Rätsel (Edit)</span>
+                <span>Edit</span>
               </button>
 
               <div className="mobile-menu-section-label" style={{ marginTop: '0.75rem' }}>Aktionen & Hilfe</div>
-              <button 
+              <button
                 className="btn btn-secondary mobile-menu-btn"
                 onClick={() => {
                   setShowImportModal(true);
@@ -745,7 +745,7 @@ export default function App() {
                 <span>Rätsel importieren</span>
               </button>
 
-              <button 
+              <button
                 className="btn btn-secondary mobile-menu-btn"
                 onClick={() => {
                   setShowRulesModal(true);
@@ -777,7 +777,7 @@ export default function App() {
 
       {/* Main Workspace */}
       <div className="game-workspace">
-        
+
         {/* Left Side: Game Board */}
         <div className="glass-panel board-section">
           {gameMode === 'play' && (
@@ -816,7 +816,7 @@ export default function App() {
             <button className="btn btn-secondary btn-icon" onClick={handleReset} title="Zurücksetzen">
               <RotateCcw size={18} />
             </button>
-            
+
             <div style={{ width: '2px', height: '24px', background: 'var(--glass-border)', margin: '0 4px' }} />
 
             <button className="btn btn-outline-glow" onClick={handleHint} title="Tipp erhalten">
@@ -836,7 +836,7 @@ export default function App() {
 
         {/* Right Side: Control Panels */}
         <div className="sidebar-panel">
-          
+
           {/* Saved Puzzles Selector (Only in Play mode) */}
           {gameMode === 'play' && (
             <div className="glass-panel">
@@ -847,7 +847,7 @@ export default function App() {
               <div className="control-group">
                 <label className="label-text">Verfügbare Rätsel ({savedPuzzles.length})</label>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  <select 
+                  <select
                     className="select-control"
                     style={{ flex: 1 }}
                     value={selectedPuzzleId}
@@ -868,9 +868,9 @@ export default function App() {
                     )}
                   </select>
                   {selectedPuzzleId && savedPuzzles.length > 0 && (
-                    <button 
-                      type="button" 
-                      className="btn btn-secondary btn-icon" 
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-icon"
                       onClick={handleDeleteCurrentPuzzle}
                       title="Ausgewähltes Rätsel löschen"
                     >
@@ -889,11 +889,11 @@ export default function App() {
                 <Grid size={18} color="var(--accent-purple)" />
                 Editor-Einstellungen
               </h2>
-              
+
               <div className="control-group">
                 <label className="label-text">Spielfeldgröße</label>
                 <div className="btn-grid">
-                  <button 
+                  <button
                     className={`btn ${boardSize === 9 ? 'btn-primary' : 'btn-secondary'}`}
                     onClick={() => {
                       setBoardSize(9);
@@ -910,7 +910,7 @@ export default function App() {
                   >
                     Standard 9x9
                   </button>
-                  <button 
+                  <button
                     className={`btn ${boardSize === 6 ? 'btn-primary' : 'btn-secondary'}`}
                     onClick={() => {
                       setBoardSize(6);
@@ -933,15 +933,15 @@ export default function App() {
               <div className="control-group">
                 <label className="label-text">Feldtyp anpassen</label>
                 <div className="edit-cell-toggles">
-                  <button 
-                    className="btn btn-secondary" 
+                  <button
+                    className="btn btn-secondary"
                     onClick={() => toggleCellType('white')}
                     disabled={!selectedCell}
                   >
                     Weiß (Spieler)
                   </button>
-                  <button 
-                    className="btn btn-secondary" 
+                  <button
+                    className="btn btn-secondary"
                     onClick={() => toggleCellType('black')}
                     disabled={!selectedCell}
                     style={{ background: '#0b0f19', borderColor: '#374151' }}
@@ -963,7 +963,7 @@ export default function App() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
               <span className="label-text">Zahleneingabe</span>
               {gameMode === 'play' && (
-                <button 
+                <button
                   className={`btn pencil-mode-btn ${pencilMode ? 'active' : 'btn-secondary'}`}
                   style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', borderRadius: '6px' }}
                   onClick={() => setPencilMode(!pencilMode)}
@@ -1041,7 +1041,7 @@ export default function App() {
               <p>
                 Str8ts ist ein logisches Zahlenrätsel. Die Regeln sind einfach, aber das Lösen erfordert kluges Kombinieren.
               </p>
-              
+
               <div className="rules-list">
                 <div className="rule-item">
                   <div className="rule-title">
@@ -1049,7 +1049,7 @@ export default function App() {
                   </div>
                   In jeder Zeile und jeder Spalte darf jede Ziffer (1 bis 9) maximal einmal vorkommen. Dies gilt sowohl für weiße als auch für schwarze Felder!
                 </div>
-                
+
                 <div className="rule-item">
                   <div className="rule-title">
                     <span className="rule-number">2.</span> Schwarze Felder
@@ -1113,7 +1113,7 @@ export default function App() {
 
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.5rem' }}>
               {savedPuzzles.length > 1 && (
-                <button 
+                <button
                   className="btn btn-secondary"
                   onClick={() => {
                     setGameSolved(false);
@@ -1127,7 +1127,7 @@ export default function App() {
                   Nächstes Rätsel
                 </button>
               )}
-              <button 
+              <button
                 className="btn btn-primary"
                 onClick={() => {
                   setGameSolved(false);
