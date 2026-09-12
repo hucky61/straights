@@ -804,9 +804,33 @@ export default function App() {
             errors={errors}
             size={boardSize}
           />
-
+          <div className="numpad-row">
+            {Array.from({ length: boardSize }, (_, i) => i + 1).map(num => (
+              <button
+                key={num}
+                className="numpad-btn"
+                onClick={() => handleInput(num)}
+                disabled={!selectedCell}
+              >
+                {num}
+              </button>
+            ))}
+          </div>
           {/* Quick Action buttons under the board */}
           <div className="btn-row" style={{ marginTop: '0.5rem', width: '100%', justifyContent: 'center', flexWrap: 'wrap' }}>
+            {gameMode === 'play' && (
+              <button
+                className={`btn pencil-mode-btn ${pencilMode ? 'active' : 'btn-secondary'}`}
+                style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', borderRadius: '6px' }}
+                onClick={() => setPencilMode(!pencilMode)}
+              >
+                <Pencil size={12} style={{ marginRight: '4px' }} />
+                Notizen (N)
+              </button>
+            )}
+            <button className="btn btn-secondary btn-icon numpad-erase" onClick={handleDelete} disabled={!selectedCell} title="Feld leeren">
+              <Trash2 size={20} />
+            </button>
             <button className="btn btn-secondary btn-icon" onClick={handleUndo} disabled={history.length === 0} title="Rückgängig (Ctrl+Z)">
               <Undo size={18} />
             </button>
@@ -816,9 +840,8 @@ export default function App() {
             <button className="btn btn-secondary btn-icon" onClick={handleReset} title="Zurücksetzen">
               <RotateCcw size={18} />
             </button>
-
-            <div style={{ width: '2px', height: '24px', background: 'var(--glass-border)', margin: '0 4px' }} />
-
+          </div>
+          <div className="btn-row" style={{ marginTop: '0.5rem', width: '100%', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button className="btn btn-outline-glow" onClick={handleHint} title="Tipp erhalten">
               <HelpCircle size={18} />
               Tipp

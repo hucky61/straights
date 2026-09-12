@@ -603,6 +603,13 @@ body {
   width: 100%;
 }
 
+.numpad-row {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 0.6rem;
+  margin: 0 auto;
+}
+
 .numpad-btn {
   background: #ffffff;
   border: 1px solid #e2e8f0;
