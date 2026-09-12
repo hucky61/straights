@@ -828,7 +828,7 @@ export default function App() {
                 Notizen (N)
               </button>
             )}
-            <button className="btn btn-secondary btn-icon numpad-erase" onClick={handleDelete} disabled={!selectedCell} title="Feld leeren">
+            <button className="btn btn-danger btn-icon numpad-erase" onClick={handleDelete} disabled={!selectedCell} title="Feld leeren">
               <Trash2 size={20} />
             </button>
             <button className="btn btn-secondary btn-icon" onClick={handleUndo} disabled={history.length === 0} title="Rückgängig (Ctrl+Z)">
@@ -859,53 +859,6 @@ export default function App() {
 
         {/* Right Side: Control Panels */}
         <div className="sidebar-panel">
-
-          {/* Interactive Numpad & Controls */}
-          <div className="glass-panel numpad-container">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
-              <span className="label-text">Zahleneingabe</span>
-              {gameMode === 'play' && (
-                <button
-                  className={`btn pencil-mode-btn ${pencilMode ? 'active' : 'btn-secondary'}`}
-                  style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', borderRadius: '6px' }}
-                  onClick={() => setPencilMode(!pencilMode)}
-                >
-                  <Pencil size={12} style={{ marginRight: '4px' }} />
-                  Notizen (N)
-                </button>
-              )}
-            </div>
-
-            <div className="numpad-grid">
-              {Array.from({ length: boardSize }, (_, i) => i + 1).map(num => (
-                <button
-                  key={num}
-                  className="numpad-btn"
-                  onClick={() => handleInput(num)}
-                  disabled={!selectedCell}
-                >
-                  {num}
-                </button>
-              ))}
-              {/* Fill remaining slots to maintain nice 3x3 layout if size is 9, or add space */}
-              {boardSize === 9 ? (
-                <>
-                  <div />
-                  <button className="numpad-btn numpad-erase" onClick={handleDelete} disabled={!selectedCell} title="Feld leeren">
-                    <Trash2 size={20} />
-                  </button>
-                  <div />
-                </>
-              ) : (
-                <>
-                  <div />
-                  <button className="numpad-btn numpad-erase" onClick={handleDelete} disabled={!selectedCell} title="Feld leeren">
-                    <Trash2 size={20} />
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
 
           {/* Saved Puzzles Selector (Only in Play mode) */}
           {gameMode === 'play' && (
