@@ -57,7 +57,7 @@ body {
     radial-gradient(circle at 90% 80%, rgba(124, 58, 237, 0.03) 0%, transparent 40%);
   background-attachment: fixed;
   color: var(--text-primary);
-  min-height: 100vh;
+  /* min-height: 100vh; */
   overflow-x: hidden;
   line-height: 1.5;
 }
@@ -84,7 +84,7 @@ body {
 .app-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  /* min-height: 100vh; */
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
@@ -168,11 +168,11 @@ body {
   }
 
   .grid-9x9 {
-    --cell-size: clamp(36px, calc((100vw - 48px) / 9), 92px);
+    --cell-size: min(calc((100vw - 48px) / 9), 48px);
   }
 
   .grid-6x6 {
-    --cell-size: clamp(45px, calc((100vw - 48px) / 6), 110px);
+    --cell-size: min(calc((100vw - 48px) / 6), 48px);
   }
 }
 
@@ -244,7 +244,7 @@ body {
 }
 
 .grid-9x9 {
-  --cell-size: clamp(36px, 6vw, 96px);
+  --cell-size: clamp(36px, 6vw, 48px);
   grid-template-columns: repeat(9, var(--cell-size));
   grid-template-rows: repeat(9, var(--cell-size));
   width: max-content;
@@ -252,7 +252,7 @@ body {
 }
 
 .grid-6x6 {
-  --cell-size: clamp(45px, 9vw, 120px);
+  --cell-size: clamp(45px, 9vw, 72px);
   grid-template-columns: repeat(6, var(--cell-size));
   grid-template-rows: repeat(6, var(--cell-size));
   width: max-content;
@@ -1090,14 +1090,12 @@ body {
     padding: 3px;
   }
 
-  /* Remove height restriction: allow board to scale freely to available width */
   .grid-9x9 {
-    /* --cell-size: calc((100vw - 28px) / 9); */
-    --cell-size: 44px;
+    --cell-size: min(calc((100vw - 48px) / 9), 48px);
   }
 
   .grid-6x6 {
-    --cell-size: calc((100vw - 26px) / 6);
+    --cell-size: min(calc((100vw - 48px) / 6), 48px);
   }
 
   .board-status-bar {
@@ -1176,15 +1174,12 @@ body {
     padding: 2px;
   }
 
-  /* Make the space to the left and right of the board as narrow as possible */
   .grid-9x9 {
-    /* --cell-size: calc((100vw - 26px) / 9); */
-    --cell-size: 44px;
+    --cell-size: min(calc((100vw - 48px) / 9), 48px);
   }
 
   .grid-6x6 {
-    /* --cell-size: calc((100vw - 22px) / 6); */
-    --cell-size: 40px;
+    --cell-size: min(calc((100vw - 48px) / 6), 48px);
   }
 
   .grid-cell {
