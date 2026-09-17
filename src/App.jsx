@@ -1,25 +1,22 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Play,
-  RotateCcw,
-  Undo,
-  Redo,
-  CheckCircle2,
-  HelpCircle,
-  Pencil,
-  Trash2,
   BookOpen,
   Sparkles,
   Clock,
-  Grid,
-  Info,
   Download,
   Menu,
   X
 } from 'lucide-react';
 import Str8tsBoard from './components/Str8tsBoard';
 import ImportModal from './components/ImportModal';
-import { solveStr8ts, validateBoard, getCellCompartments } from './utils/str8tsSolver';
+import PuzzleSelectorPanel from './components/PuzzleSelectorPanel';
+import EditorSettingsPanel from './components/EditorSettingsPanel';
+import ShortcutsPanel from './components/ShortcutsPanel';
+import BoardControls from './components/BoardControls';
+import RulesModal from './components/RulesModal';
+import GameSolvedModal from './components/GameSolvedModal';
+import { solveStr8ts, validateBoard } from './utils/str8tsSolver';
 
 const createEmptyBoard = (size = 9) => {
   return Array.from({ length: size }, () =>
@@ -150,7 +147,6 @@ export default function App() {
     const puzzleName = metadata?.name || 'Importiertes Rätsel';
     const puzzleDiff = metadata?.difficulty || 'Mittel';
 
-    // Check if puzzle already exists by name and size
     const existingIndex = savedPuzzles.findIndex(p => p.name === puzzleName && p.size === size);
     const puzzleId = existingIndex >= 0 ? savedPuzzles[existingIndex].id : `imported-${Date.now()}`;
 
@@ -203,20 +199,15 @@ export default function App() {
 
     if (mode === 'edit') {
       setTimerActive(false);
-      // Turn all white solved cells into normal empty cells for editing, or keep board
       const newBoard = board.map(row =>
         row.map(cell => ({
           ...cell,
-          isSolved: false,
-          // If playing a builtin, convert user input to clues, or just empty the board?
-          // Let's keep the board but let the user toggle white/black and change values.
+          isSolved: false
         }))
       );
       setBoard(newBoard);
     } else {
-      // Re-initialize timer or set active
       setTimerActive(true);
-      // Ensure all clues have isGiven: true
       const newBoard = board.map(row =>
         row.map(cell => ({
           ...cell,
@@ -283,7 +274,6 @@ export default function App() {
     const { r, c } = selectedCell;
     const cell = board[r][c];
 
-    // Play Mode restrictions
     if (gameMode === 'play') {
       if (cell.type === 'black' || cell.isGiven) return;
 
@@ -291,14 +281,12 @@ export default function App() {
         row.map((colCell, ci) => {
           if (ri === r && ci === c) {
             if (pencilMode) {
-              // Pencil Mark Toggle
               const marks = colCell.pencilMarks || [];
               const newMarks = marks.includes(val)
                 ? marks.filter(m => m !== val)
                 : [...marks, val].sort();
               return { ...colCell, value: null, pencilMarks: newMarks, isSolved: false };
             } else {
-              // Regular Value
               const newValue = colCell.value === val ? null : val;
               return { ...colCell, value: newValue, pencilMarks: [], isSolved: false };
             }
@@ -307,18 +295,14 @@ export default function App() {
         })
       );
       pushToHistory(newBoard);
-    }
-    // Edit Mode controls (setting custom clues/values)
-    else if (gameMode === 'edit') {
+    } else if (gameMode === 'edit') {
       const newBoard = board.map((row, ri) =>
         row.map((colCell, ci) => {
           if (ri === r && ci === c) {
-            // Set value
             const newValue = colCell.value === val ? null : val;
             return {
               ...colCell,
               value: newValue,
-              // If black cell, value acts as clue. If white cell, value also acts as given clue.
               isGiven: newValue !== null,
               pencilMarks: []
             };
@@ -329,7 +313,6 @@ export default function App() {
       pushToHistory(newBoard);
     }
 
-    // Clear errors when entering numbers
     setErrors([]);
     setChecked(false);
   };
@@ -372,7 +355,7 @@ export default function App() {
           return {
             ...colCell,
             type,
-            value: null, // Clear value when toggling type
+            value: null,
             pencilMarks: [],
             isGiven: false,
             isSolved: false
@@ -386,6 +369,25 @@ export default function App() {
     setChecked(false);
   };
 
+  // Change board size in Edit Mode
+  const handleChangeBoardSize = (newSize) => {
+    setBoardSize(newSize);
+    const emptyBoard = Array.from({ length: newSize }, () =>
+      Array.from({ length: newSize }, () => ({
+        type: 'white',
+        value: null,
+        pencilMarks: [],
+        isGiven: false,
+        isSolved: false,
+        error: false
+      }))
+    );
+    setBoard(emptyBoard);
+    setSelectedCell(null);
+    setHistory([]);
+    setFuture([]);
+  };
+
   // Check / Validate board
   const handleCheck = () => {
     const boardErrors = validateBoard(board);
@@ -393,7 +395,6 @@ export default function App() {
     setChecked(true);
 
     if (boardErrors.length === 0) {
-      // Check if completely filled
       let isFilled = true;
       for (let r = 0; r < boardSize; r++) {
         for (let c = 0; c < boardSize; c++) {
@@ -413,11 +414,9 @@ export default function App() {
 
   // Auto-Solve using Backtracking Solver
   const handleSolve = () => {
-    // If in Edit Mode, prepare the clues by copying board values
     const preparedBoard = board.map(row =>
       row.map(cell => ({
         ...cell,
-        // Ensure values entered in Edit mode are preserved as starting clues
         isGiven: cell.value !== null,
         isSolved: false
       }))
@@ -429,9 +428,7 @@ export default function App() {
       setErrors([]);
       setChecked(true);
 
-      // If we solve it in Play mode, check if solved
       if (gameMode === 'play') {
-        // Find if anything was actually filled
         let filledSomething = false;
         for (let r = 0; r < boardSize; r++) {
           for (let c = 0; c < boardSize; c++) {
@@ -455,7 +452,6 @@ export default function App() {
   const handleHint = () => {
     if (gameSolved) return;
 
-    // Prepare board
     const preparedBoard = board.map(row =>
       row.map(cell => ({
         ...cell,
@@ -470,12 +466,10 @@ export default function App() {
       return;
     }
 
-    // Find first empty cell (or cell with incorrect value) in the solved board
     const hintCandidates = [];
     for (let r = 0; r < boardSize; r++) {
       for (let c = 0; c < boardSize; c++) {
         if (board[r][c].type === 'white') {
-          // If empty, or filled with a wrong value
           if (board[r][c].value === null || board[r][c].value !== solvedBoard[r][c].value) {
             hintCandidates.push({ r, c, val: solvedBoard[r][c].value });
           }
@@ -484,7 +478,6 @@ export default function App() {
     }
 
     if (hintCandidates.length > 0) {
-      // Pick a random candidate cell
       const randomHint = hintCandidates[Math.floor(Math.random() * hintCandidates.length)];
       const newBoard = board.map((row, ri) =>
         row.map((colCell, ci) => {
@@ -493,7 +486,7 @@ export default function App() {
               ...colCell,
               value: randomHint.val,
               pencilMarks: [],
-              isSolved: true // Highlight as solved by Hint
+              isSolved: true
             };
           }
           return colCell;
@@ -552,7 +545,6 @@ export default function App() {
     const handleKeyDown = (e) => {
       if (showRulesModal || showImportModal || gameSolved) return;
 
-      // Arrow navigation
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         e.preventDefault();
         if (!selectedCell) {
@@ -569,7 +561,6 @@ export default function App() {
         return;
       }
 
-      // Undo / Redo
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
         e.preventDefault();
         handleUndo();
@@ -581,20 +572,17 @@ export default function App() {
         return;
       }
 
-      // Input numbers 1 to 9 (or 1 to 6)
       const num = parseInt(e.key, 10);
       if (!isNaN(num) && num >= 1 && num <= boardSize) {
         handleInput(num);
         return;
       }
 
-      // Delete & Backspace
       if (e.key === 'Backspace' || e.key === 'Delete') {
         handleDelete();
         return;
       }
 
-      // Toggle pencil mode with 'n' or 'N'
       if (e.key.toLowerCase() === 'n') {
         setPencilMode(prev => !prev);
         return;
@@ -625,6 +613,16 @@ export default function App() {
         setTimerActive(false);
       }
     }
+  };
+
+  // Next puzzle handler for celebration modal
+  const handleNextPuzzle = () => {
+    setGameSolved(false);
+    const idx = savedPuzzles.findIndex(p => p.id === selectedPuzzleId);
+    const nextIdx = (idx + 1) % savedPuzzles.length;
+    const nextId = savedPuzzles[nextIdx].id;
+    setSelectedPuzzleId(nextId);
+    loadPuzzle(nextId);
   };
 
   const currentPuzzle = savedPuzzles.find(p => p.id === selectedPuzzleId) || null;
@@ -778,7 +776,7 @@ export default function App() {
       {/* Main Workspace */}
       <div className="game-workspace">
 
-        {/* Left Side: Game Board */}
+        {/* Left Side: Game Board & Board Controls */}
         <div className="glass-panel board-section">
           {gameMode === 'play' && (
             <div className="board-status-bar">
@@ -804,57 +802,24 @@ export default function App() {
             errors={errors}
             size={boardSize}
           />
-          <div className="numpad-row">
-            {Array.from({ length: boardSize }, (_, i) => i + 1).map(num => (
-              <button
-                key={num}
-                className="numpad-btn"
-                onClick={() => handleInput(num)}
-                disabled={!selectedCell}
-              >
-                {num}
-              </button>
-            ))}
-          </div>
-          {/* Quick Action buttons under the board */}
-          <div className="btn-row" style={{ marginTop: '0.5rem', width: '100%', justifyContent: 'center', flexWrap: 'wrap' }}>
-            {gameMode === 'play' && (
-              <button
-                className={`btn pencil-mode-btn ${pencilMode ? 'active' : 'btn-secondary'}`}
-                style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', borderRadius: '6px' }}
-                onClick={() => setPencilMode(!pencilMode)}
-              >
-                <Pencil size={12} style={{ marginRight: '4px' }} />
-                Notizen (N)
-              </button>
-            )}
-            <button className="btn btn-danger btn-icon numpad-erase" onClick={handleDelete} disabled={!selectedCell} title="Feld leeren">
-              <Trash2 size={20} />
-            </button>
-            <button className="btn btn-secondary btn-icon" onClick={handleUndo} disabled={history.length === 0} title="Rückgängig (Ctrl+Z)">
-              <Undo size={18} />
-            </button>
-            <button className="btn btn-secondary btn-icon" onClick={handleRedo} disabled={future.length === 0} title="Wiederholen (Ctrl+Y)">
-              <Redo size={18} />
-            </button>
-            <button className="btn btn-secondary btn-icon" onClick={handleReset} title="Zurücksetzen">
-              <RotateCcw size={18} />
-            </button>
-          </div>
-          <div className="btn-row" style={{ marginTop: '0.5rem', width: '100%', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button className="btn btn-outline-glow" onClick={handleHint} title="Tipp erhalten">
-              <HelpCircle size={18} />
-              Tipp
-            </button>
-            <button className="btn btn-secondary" onClick={handleCheck} title="Fehler überprüfen">
-              <CheckCircle2 size={18} color="var(--accent-cyan)" />
-              Prüfen
-            </button>
-            <button className="btn btn-primary" onClick={handleSolve} title="Automatisch lösen">
-              <Play size={18} />
-              Lösen
-            </button>
-          </div>
+
+          <BoardControls
+            boardSize={boardSize}
+            selectedCell={selectedCell}
+            gameMode={gameMode}
+            pencilMode={pencilMode}
+            canUndo={history.length > 0}
+            canRedo={future.length > 0}
+            onInput={handleInput}
+            onDelete={handleDelete}
+            onTogglePencil={() => setPencilMode(!pencilMode)}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
+            onReset={handleReset}
+            onHint={handleHint}
+            onCheck={handleCheck}
+            onSolve={handleSolve}
+          />
         </div>
 
         {/* Right Side: Control Panels */}
@@ -862,137 +827,30 @@ export default function App() {
 
           {/* Saved Puzzles Selector (Only in Play mode) */}
           {gameMode === 'play' && (
-            <div className="glass-panel">
-              <h2 className="panel-title">
-                <Grid size={18} color="var(--accent-cyan)" />
-                Rätsel wählen
-              </h2>
-              <div className="control-group">
-                <label className="label-text">Verfügbare Rätsel ({savedPuzzles.length})</label>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  <select
-                    className="select-control"
-                    style={{ flex: 1 }}
-                    value={selectedPuzzleId}
-                    onChange={(e) => {
-                      const newId = e.target.value;
-                      setSelectedPuzzleId(newId);
-                      loadPuzzle(newId);
-                    }}
-                  >
-                    {savedPuzzles.length === 0 ? (
-                      <option value="" disabled>Keine Rätsel geladen (Importieren nutzen)</option>
-                    ) : (
-                      savedPuzzles.map(p => (
-                        <option key={p.id} value={p.id}>
-                          📥 {p.name} ({p.size}x{p.size}) - {p.difficulty}
-                        </option>
-                      ))
-                    )}
-                  </select>
-                  {selectedPuzzleId && savedPuzzles.length > 0 && (
-                    <button
-                      type="button"
-                      className="btn btn-secondary btn-icon"
-                      onClick={handleDeleteCurrentPuzzle}
-                      title="Ausgewähltes Rätsel löschen"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
+            <PuzzleSelectorPanel
+              savedPuzzles={savedPuzzles}
+              selectedPuzzleId={selectedPuzzleId}
+              onSelectPuzzle={(newId) => {
+                setSelectedPuzzleId(newId);
+                loadPuzzle(newId);
+              }}
+              onDeletePuzzle={handleDeleteCurrentPuzzle}
+            />
           )}
 
           {/* Edit Mode Helpers (Only in Edit mode) */}
           {gameMode === 'edit' && (
-            <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <h2 className="panel-title">
-                <Grid size={18} color="var(--accent-purple)" />
-                Editor-Einstellungen
-              </h2>
-
-              <div className="control-group">
-                <label className="label-text">Spielfeldgröße</label>
-                <div className="btn-grid">
-                  <button
-                    className={`btn ${boardSize === 9 ? 'btn-primary' : 'btn-secondary'}`}
-                    onClick={() => {
-                      setBoardSize(9);
-                      const emptyBoard = Array.from({ length: 9 }, () =>
-                        Array.from({ length: 9 }, () => ({
-                          type: 'white', value: null, pencilMarks: [], isGiven: false, isSolved: false, error: false
-                        }))
-                      );
-                      setBoard(emptyBoard);
-                      setSelectedCell(null);
-                      setHistory([]);
-                      setFuture([]);
-                    }}
-                  >
-                    Standard 9x9
-                  </button>
-                  <button
-                    className={`btn ${boardSize === 6 ? 'btn-primary' : 'btn-secondary'}`}
-                    onClick={() => {
-                      setBoardSize(6);
-                      const emptyBoard = Array.from({ length: 6 }, () =>
-                        Array.from({ length: 6 }, () => ({
-                          type: 'white', value: null, pencilMarks: [], isGiven: false, isSolved: false, error: false
-                        }))
-                      );
-                      setBoard(emptyBoard);
-                      setSelectedCell(null);
-                      setHistory([]);
-                      setFuture([]);
-                    }}
-                  >
-                    Mini 6x6
-                  </button>
-                </div>
-              </div>
-
-              <div className="control-group">
-                <label className="label-text">Feldtyp anpassen</label>
-                <div className="edit-cell-toggles">
-                  <button
-                    className="btn btn-secondary"
-                    onClick={() => toggleCellType('white')}
-                    disabled={!selectedCell}
-                  >
-                    Weiß (Spieler)
-                  </button>
-                  <button
-                    className="btn btn-secondary"
-                    onClick={() => toggleCellType('black')}
-                    disabled={!selectedCell}
-                    style={{ background: '#0b0f19', borderColor: '#374151' }}
-                  >
-                    Schwarz (Wand)
-                  </button>
-                </div>
-              </div>
-
-              <button className="btn btn-danger" onClick={handleClearAll}>
-                <Trash2 size={16} />
-                Spielfeld leeren
-              </button>
-            </div>
+            <EditorSettingsPanel
+              boardSize={boardSize}
+              onChangeBoardSize={handleChangeBoardSize}
+              selectedCell={selectedCell}
+              onToggleCellType={toggleCellType}
+              onClearAll={handleClearAll}
+            />
           )}
 
           {/* Keyboard Shortcuts Help */}
-          <div className="glass-panel keyboard-hints">
-            <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Info size={14} color="var(--accent-cyan)" />
-              Steuerung & Shortcuts:
-            </div>
-            • <b>Klick</b> oder <b>Pfeiltasten</b> zum Auswählen von Feldern.<br />
-            • Ziffern <b>1–{boardSize}</b> geben Werte ein.<br />
-            • <b>N</b> schaltet Notiz-Modus um (nur beim Spielen).<br />
-            • <b>Backspace / Entf</b> löscht Ziffern.<br />
-            • <b>Ctrl + Z / Y</b> für Undo und Redo.
-          </div>
+          <ShortcutsPanel boardSize={boardSize} />
 
         </div>
 
@@ -1006,116 +864,24 @@ export default function App() {
       />
 
       {/* Rules Modal Overlay */}
-      {showRulesModal && (
-        <div className="modal-overlay" onClick={() => setShowRulesModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close-btn" onClick={() => setShowRulesModal(false)}>
-              &times;
-            </button>
-            <h2 className="modal-title">Spielregeln für Str8ts (Straights)</h2>
-            <div className="modal-body">
-              <p>
-                Str8ts ist ein logisches Zahlenrätsel. Die Regeln sind einfach, aber das Lösen erfordert kluges Kombinieren.
-              </p>
-
-              <div className="rules-list">
-                <div className="rule-item">
-                  <div className="rule-title">
-                    <span className="rule-number">1.</span> Sudoku-Regel
-                  </div>
-                  In jeder Zeile und jeder Spalte darf jede Ziffer (1 bis 9) maximal einmal vorkommen. Dies gilt sowohl für weiße als auch für schwarze Felder!
-                </div>
-
-                <div className="rule-item">
-                  <div className="rule-title">
-                    <span className="rule-number">2.</span> Schwarze Felder
-                  </div>
-                  Schwarze Quadrate teilen Zeilen und Spalten in kleinere Abschnitte (sogenannte <b>Straßen</b> oder Compartments). Schwarze Felder können leer sein oder eine Zahl enthalten. Sie gehören nicht zu den Straßen.
-                </div>
-
-                <div className="rule-item">
-                  <div className="rule-title">
-                    <span className="rule-number">3.</span> Straßen (Straights)
-                  </div>
-                  Jede zusammenhängende Kette von weißen Feldern in einer Reihe oder Spalte bildet eine Straße. Sie muss mit aufeinanderfolgenden Ziffern gefüllt werden.
-                  <br />
-                  <span style={{ color: 'var(--accent-cyan)', fontSize: '0.85rem', fontWeight: 600 }}>
-                    * Wichtig: Die Zahlen müssen NICHT in der richtigen Reihenfolge stehen (z.B. ist 4-2-3 eine gültige Straße für 3 Felder). Es dürfen nur keine Lücken entstehen!
-                  </span>
-                </div>
-
-                <div className="rule-item">
-                  <div className="rule-title">
-                    <span className="rule-number">4.</span> Keine Ziffern-Wiederholung
-                  </div>
-                  Da Straßen in einer einzigen Zeile/Spalte liegen, darf sich logischerweise keine Ziffer innerhalb einer Straße wiederholen.
-                </div>
-              </div>
-
-              <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
-                <button className="btn btn-primary" onClick={() => setShowRulesModal(false)}>
-                  Alles klar!
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <RulesModal
+        isOpen={showRulesModal}
+        onClose={() => setShowRulesModal(false)}
+      />
 
       {/* Game Solved Modal Overlay */}
-      {gameSolved && (
-        <div className="modal-overlay">
-          <div className="modal-content text-center">
-            <div className="celebration-icon">
-              <CheckCircle2 size={40} />
-            </div>
-            <h2 className="celebration-title">Gelöst!</h2>
-            <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
-              Herzlichen Glückwunsch! Du hast das Str8ts Rätsel erfolgreich gelöst.
-            </p>
-
-            {gameMode === 'play' && (
-              <div className="stat-grid">
-                <div className="stat-card">
-                  <div className="stat-val">{formatTime(timer)}</div>
-                  <div className="stat-lbl">Zeit</div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-val">{currentPuzzle?.difficulty}</div>
-                  <div className="stat-lbl">Schwierigkeit</div>
-                </div>
-              </div>
-            )}
-
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.5rem' }}>
-              {savedPuzzles.length > 1 && (
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => {
-                    setGameSolved(false);
-                    const idx = savedPuzzles.findIndex(p => p.id === selectedPuzzleId);
-                    const nextIdx = (idx + 1) % savedPuzzles.length;
-                    const nextId = savedPuzzles[nextIdx].id;
-                    setSelectedPuzzleId(nextId);
-                    loadPuzzle(nextId);
-                  }}
-                >
-                  Nächstes Rätsel
-                </button>
-              )}
-              <button
-                className="btn btn-primary"
-                onClick={() => {
-                  setGameSolved(false);
-                  loadPuzzle(selectedPuzzleId);
-                }}
-              >
-                Nochmal spielen
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <GameSolvedModal
+        isOpen={gameSolved}
+        gameMode={gameMode}
+        timeFormatted={formatTime(timer)}
+        difficulty={currentPuzzle?.difficulty}
+        hasMultiplePuzzles={savedPuzzles.length > 1}
+        onNextPuzzle={handleNextPuzzle}
+        onPlayAgain={() => {
+          setGameSolved(false);
+          loadPuzzle(selectedPuzzleId);
+        }}
+      />
     </div>
   );
 }

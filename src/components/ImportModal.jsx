@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Download, Link as LinkIcon, AlertCircle, Loader2, Printer, Calendar } from 'lucide-react';
 import { importStr8tsFromUrlOrText } from '../utils/str8tsImporter';
 
@@ -22,9 +22,9 @@ export default function ImportModal({ isOpen, onClose, onImportSuccess }) {
 
       let label = '';
       if (d === 0) {
-        label = `Heute – ${formattedDate}`;
+        label = `Heute - ${formattedDate}`;
       } else if (d === 1) {
-        label = `Gestern – ${formattedDate}`;
+        label = `Gestern - ${formattedDate}`;
       } else {
         label = `${formattedDate} (vor ${d} Tagen)`;
       }

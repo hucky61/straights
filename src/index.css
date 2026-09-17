@@ -157,7 +157,7 @@ body {
 /* Main Game Workspace */
 .game-workspace {
   display: grid;
-  grid-template-columns: 1fr 380px;
+  grid-template-columns: 1fr 460px;
   gap: 2rem;
   align-items: start;
 }
@@ -848,6 +848,10 @@ body {
 }
 
 /* Import Modal Styles */
+.modal-content.import-modal {
+  max-width: 720px;
+}
+
 .import-header {
   display: flex;
   align-items: center;
