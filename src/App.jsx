@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import Str8tsBoard from './components/Str8tsBoard';
 import ImportModal from './components/ImportModal';
+import SavePuzzleModal from './components/SavePuzzleModal';
 import PuzzleSelectorPanel from './components/PuzzleSelectorPanel';
 import EditorSettingsPanel from './components/EditorSettingsPanel';
 import ShortcutsPanel from './components/ShortcutsPanel';
@@ -85,6 +86,7 @@ export default function App() {
   // Modal & Navigation States
   const [showRulesModal, setShowRulesModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Sync saved puzzles to localStorage
@@ -186,6 +188,63 @@ export default function App() {
     setChecked(false);
     setGameSolved(false);
     setGameMode('play');
+    setTimer(0);
+    setTimerActive(true);
+  };
+
+  // Handle saving an edited or custom puzzle
+  const handleSavePuzzle = ({ name, difficulty, overwrite }) => {
+    const puzzleId = (overwrite && selectedPuzzleId) ? selectedPuzzleId : `custom-${Date.now()}`;
+
+    // White cells with user entered value become fixed starting clues (isGiven: true)
+    // Black cells keep any clue value
+    const puzzleBoard = board.map(row => row.map(cell => ({
+      type: cell.type,
+      value: cell.value,
+      pencilMarks: [],
+      isGiven: cell.value !== null,
+      isSolved: false,
+      error: false
+    })));
+
+    const newPuzzle = {
+      id: puzzleId,
+      name: name || 'Eigenes Rätsel',
+      difficulty: difficulty || 'Mittel',
+      size: boardSize,
+      board: puzzleBoard,
+      savedAt: new Date().toISOString()
+    };
+
+    setSavedPuzzles(prev => {
+      const idx = prev.findIndex(p => p.id === puzzleId);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = newPuzzle;
+        return copy;
+      }
+      return [newPuzzle, ...prev];
+    });
+
+    setSelectedPuzzleId(puzzleId);
+
+    // Prepare playable board and switch directly to Play mode
+    const playableBoard = puzzleBoard.map(row => row.map(cell => ({
+      ...cell,
+      value: cell.isGiven ? cell.value : null,
+      pencilMarks: [],
+      isSolved: false,
+      error: false
+    })));
+
+    setBoard(playableBoard);
+    setGameMode('play');
+    setSelectedCell(null);
+    setHistory([]);
+    setFuture([]);
+    setErrors([]);
+    setChecked(false);
+    setGameSolved(false);
     setTimer(0);
     setTimerActive(true);
   };
@@ -543,7 +602,7 @@ export default function App() {
   // Keyboard navigation and input
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (showRulesModal || showImportModal || gameSolved) return;
+      if (showRulesModal || showImportModal || showSaveModal || gameSolved) return;
 
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         e.preventDefault();
@@ -591,7 +650,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedCell, board, pencilMode, gameMode, boardSize, showRulesModal, showImportModal, gameSolved, history, future]);
+  }, [selectedCell, board, pencilMode, gameMode, boardSize, showRulesModal, showImportModal, showSaveModal, gameSolved, history, future]);
 
   // Delete current selected puzzle from saved library
   const handleDeleteCurrentPuzzle = () => {
@@ -767,7 +826,7 @@ export default function App() {
           <div>
             <div className="edit-mode-title">Editor-Modus Aktiv</div>
             <div className="edit-mode-desc">
-              Tippe auf Felder, um sie schwarz/weiß zu machen. Gib Ziffern ein, um feste Rätsel-Vorgaben zu erstellen. Klicke dann auf "Automatisch Lösen"!
+              Tippe auf Felder, um sie schwarz/weiß zu machen. Gib Ziffern ein, um feste Rätsel-Vorgaben zu erstellen. Klicke auf <b>„Rätsel speichern“</b>, um dein Werk dauerhaft zu sichern!
             </div>
           </div>
         </div>
@@ -846,6 +905,7 @@ export default function App() {
               selectedCell={selectedCell}
               onToggleCellType={toggleCellType}
               onClearAll={handleClearAll}
+              onOpenSaveModal={() => setShowSaveModal(true)}
             />
           )}
 
@@ -861,6 +921,16 @@ export default function App() {
         isOpen={showImportModal}
         onClose={() => setShowImportModal(false)}
         onImportSuccess={handleImportSuccess}
+      />
+
+      {/* Save Puzzle Modal */}
+      <SavePuzzleModal
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        board={board}
+        boardSize={boardSize}
+        currentPuzzle={currentPuzzle}
+        onSave={handleSavePuzzle}
       />
 
       {/* Rules Modal Overlay */}

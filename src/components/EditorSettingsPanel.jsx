@@ -1,12 +1,13 @@
-﻿import React from 'react';
-import { Grid, Trash2 } from 'lucide-react';
+import React from 'react';
+import { Grid, Trash2, Save } from 'lucide-react';
 
 export default function EditorSettingsPanel({
   boardSize = 9,
   onChangeBoardSize,
   selectedCell,
   onToggleCellType,
-  onClearAll
+  onClearAll,
+  onOpenSaveModal
 }) {
   return (
     <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -14,6 +15,18 @@ export default function EditorSettingsPanel({
         <Grid size={18} color="var(--accent-purple)" />
         Editor-Einstellungen
       </h2>
+
+      {/* Save Puzzle Button */}
+      <button
+        type="button"
+        className="btn btn-primary"
+        style={{ width: '100%', gap: '0.5rem', fontWeight: 700 }}
+        onClick={onOpenSaveModal}
+        title="Aktuelles Rätsel mit Name und Schwierigkeit speichern"
+      >
+        <Save size={18} />
+        Rätsel speichern
+      </button>
 
       <div className="control-group">
         <label className="label-text">Spielfeldgröße</label>
