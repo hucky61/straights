@@ -609,6 +609,7 @@ body {
   grid-template-columns: repeat(9, 1fr);
   gap: 0.6rem;
   margin: 0 auto;
+  width: 75%;
 }
 
 .numpad-btn {
