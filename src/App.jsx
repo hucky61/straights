@@ -5,12 +5,14 @@ import {
   Sparkles,
   Clock,
   Download,
+  Camera,
   Menu,
   X
 } from 'lucide-react';
 import Str8tsBoard from './components/Str8tsBoard';
 import ImportModal from './components/ImportModal';
 import SavePuzzleModal from './components/SavePuzzleModal';
+import ScanModal from './components/ScanModal';
 import PuzzleSelectorPanel from './components/PuzzleSelectorPanel';
 import EditorSettingsPanel from './components/EditorSettingsPanel';
 import ShortcutsPanel from './components/ShortcutsPanel';
@@ -87,6 +89,7 @@ export default function App() {
   const [showRulesModal, setShowRulesModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const [showScanModal, setShowScanModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Sync saved puzzles to localStorage
@@ -144,7 +147,7 @@ export default function App() {
     }
   }, [selectedPuzzleId]);
 
-  // Handle successful import
+  // Handle successful import (from URL or from Scanner!)
   const handleImportSuccess = ({ board: importedBoard, size, metadata }) => {
     const puzzleName = metadata?.name || 'Importiertes Rätsel';
     const puzzleDiff = metadata?.difficulty || 'Mittel';
@@ -196,8 +199,6 @@ export default function App() {
   const handleSavePuzzle = ({ name, difficulty, overwrite }) => {
     const puzzleId = (overwrite && selectedPuzzleId) ? selectedPuzzleId : `custom-${Date.now()}`;
 
-    // White cells with user entered value become fixed starting clues (isGiven: true)
-    // Black cells keep any clue value
     const puzzleBoard = board.map(row => row.map(cell => ({
       type: cell.type,
       value: cell.value,
@@ -228,7 +229,6 @@ export default function App() {
 
     setSelectedPuzzleId(puzzleId);
 
-    // Prepare playable board and switch directly to Play mode
     const playableBoard = puzzleBoard.map(row => row.map(cell => ({
       ...cell,
       value: cell.isGiven ? cell.value : null,
@@ -602,7 +602,7 @@ export default function App() {
   // Keyboard navigation and input
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (showRulesModal || showImportModal || showSaveModal || gameSolved) return;
+      if (showRulesModal || showImportModal || showSaveModal || showScanModal || gameSolved) return;
 
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         e.preventDefault();
@@ -650,7 +650,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedCell, board, pencilMode, gameMode, boardSize, showRulesModal, showImportModal, showSaveModal, gameSolved, history, future]);
+  }, [selectedCell, board, pencilMode, gameMode, boardSize, showRulesModal, showImportModal, showSaveModal, showScanModal, gameSolved, history, future]);
 
   // Delete current selected puzzle from saved library
   const handleDeleteCurrentPuzzle = () => {
@@ -713,6 +713,14 @@ export default function App() {
             onClick={() => handleGameModeChange('edit')}
           >
             Edit
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() => setShowScanModal(true)}
+            title="Str8ts Rätsel per Kamera oder Foto einscannen"
+          >
+            <Camera size={18} color="var(--accent-cyan)" />
+            Scannen
           </button>
           <button
             className="btn btn-secondary"
@@ -794,12 +802,23 @@ export default function App() {
               <button
                 className="btn btn-secondary mobile-menu-btn"
                 onClick={() => {
+                  setShowScanModal(true);
+                  setMobileMenuOpen(false);
+                }}
+              >
+                <Camera size={18} color="var(--accent-cyan)" />
+                <span>Rätsel scannen (Foto/Kamera)</span>
+              </button>
+
+              <button
+                className="btn btn-secondary mobile-menu-btn"
+                onClick={() => {
                   setShowImportModal(true);
                   setMobileMenuOpen(false);
                 }}
               >
                 <Download size={18} color="var(--accent-cyan)" />
-                <span>Rätsel importieren</span>
+                <span>Rätsel importieren (URL/Code)</span>
               </button>
 
               <button
@@ -916,7 +935,14 @@ export default function App() {
 
       </div>
 
-      {/* Import Modal */}
+      {/* Scan Modal (Camera / Photo Upload) */}
+      <ScanModal
+        isOpen={showScanModal}
+        onClose={() => setShowScanModal(false)}
+        onScanSuccess={handleImportSuccess}
+      />
+
+      {/* Import Modal (URL / Code) */}
       <ImportModal
         isOpen={showImportModal}
         onClose={() => setShowImportModal(false)}
